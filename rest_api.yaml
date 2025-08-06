@@ -262,6 +262,7 @@ paths:
                 items:
                   type: object
                   properties:
+                    // дописать координаты
                     station_id:
                       type: string
                       format: uuid
@@ -322,6 +323,7 @@ paths:
               schema:
                 type: object
                 properties:
+                  // дописать координаты
                   station_id:
                     type: string
                     format: uuid
@@ -496,6 +498,7 @@ paths:
                     items:
                       type: object
                       properties:
+                        // добавить тэг, количество тегов будет ограничено
                         name:
                           type: string
                           description: Name of the object (e.g., station, shop)
@@ -596,6 +599,7 @@ paths:
         '500':
           description: Internal Server Error
   
+  // почитать про FCM
   /monitoring/push: 
     get: 
       tags: 
