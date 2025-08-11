@@ -1,0 +1,680 @@
+openapi: 3.0.0
+info:
+  version: "1.0.0"
+  title: Auto Tracker
+  description: The API for Auto Tracker, that displays nearest stations
+paths:
+  /register:
+    post:
+      tags:
+        - User
+      description: Register new user in System
+      requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [phone, login]
+                properties:
+                  phone:
+                    type: string
+                    example: "+1234567890"
+                  login:
+                    type: string
+                    example: "john_doe"
+                  radius:
+                    type: integer
+                    minimum: 0
+                    maximum: 100
+                    example: 5
+                  fuel_types:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Gasoline", "Diesel"]
+                  brand_types:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Shell", "BP"]
+                  fcm_token: 
+                    type: tring
+                    example: "a0eebc999c0b4ef8bb6d6bb9bd380a11"
+      responses:
+        '200':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                    format: uuid
+                    description: Unique identifier of the user
+        '400': 
+          description: Bad Request
+        '500': 
+          description: Internal Server Error
+  /login:
+    post: 
+      tags:
+        - User
+      description: Login user to system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, fcm_token]
+              properties:
+                phone:
+                  type: string
+                  example: "+1234567890"
+                fcm_token: 
+                  type: string
+                  example: "a0eebc999c0b4ef8bb6d6bb9bd380a11"
+      responses:
+        '200':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                    format: uuid
+                    description: Unique identifier of the user
+        '400': 
+          description: Bad Request
+        '404': 
+          description: User not found
+        '500': 
+          description: Internal Server Error
+  
+  /temporary_password/{user_id}: 
+    post: 
+      tags:
+        - User
+      description: Send temporary password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  example: "123456"
+      parameters:
+        - in: path
+          name: user_id
+          description: User ID 
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User successfully registered or logged in
+        '400': 
+          description: Bad Request
+        '404': 
+          description: User not found
+        '500': 
+          description: Internal Server Error
+  
+  /profile/{user_id}: 
+    get:
+      tags:
+        - User
+      description: Get user Profile
+      parameters: 
+        - in: path
+          name: user_id
+          description: User ID 
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successfully returned user data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: string
+                    format: uuid
+                    description: Unique identifier of the user
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  phone:
+                    type: string
+                    description: User phone number
+                    example: "+1234567890"
+                  login:
+                    type: string
+                    description: User login in the system
+                    example: "john_doe"
+                  fuel_types:
+                    type: array
+                    description: List of preferred fuel types
+                    items:
+                      type: string
+                    example: ["Gasoline", "Diesel"]
+                  station_brands:
+                    type: array
+                    description: List of preferred station brands
+                    items:
+                      type: string
+                    example: ["Shell", "BP", "Exxon"]
+                  radius:
+                    type: integer
+                    format: int
+                    description: Search radius for stations (in kilometers)
+                    example: 5
+        '404':
+          description: User not found
+        '500':
+          description: Internal Server Error
+    
+    put:
+      tags:
+        - User
+      description: Update user Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login:
+                  type: string
+                  example: "john_doe"
+                fuel_types:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Gasoline", "Diesel"]
+                brand_types:
+                  type: array
+                  items:
+                    type: string
+                  example: ["Shell", "BP"]
+                radius:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                  example: 5
+      parameters: 
+        - in: path
+          name: user_id
+          description: User ID 
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successfully updated user data
+        '404':
+          description: User not found
+        '500':
+          description: Internal Server Error
+  
+  /stations/{user_id}: 
+    get:
+      tags:
+        - Station
+      description: Get list of suitable stations
+      parameters: 
+        - in: path
+          name: user_id
+          description: User ID 
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: latitude
+          description: User's current latitude
+          required: true
+          schema:
+            type: number
+            format: float64
+            example: 40.7128
+        - in: query
+          name: longitude
+          description: User's current longitude
+          required: true
+          schema:
+            type: number
+            format: float64
+            example: -74.0060
+      responses:
+        '200':
+          description: Stations rate successfully updated
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    station_id:
+                      type: string
+                      format: uuid
+                      description: Unique identifier of the station
+                      example: "550e8400-e29b-41d4-a716-446655440000"
+                    latitude: 
+                      type: number
+                      description: Latitude of the station
+                      format: float64
+                      example: 40.7128
+                    longtitude:
+                      type: number
+                      description: Longtitude of the station
+                      format: float64
+                      example: 40.7128
+                    address:
+                      type: string
+                      description: Full address of the station
+                      example: "123 Main St, City, Country"
+                    brand:
+                      type: string
+                      description: Brand of the station
+                      example: "Shell"
+                    fuel_types:
+                      type: array
+                      description: List of available fuel types with their prices
+                      items:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            description: Type of fuel
+                            example: "Gasoline"
+                          price:
+                            type: number
+                            format: decimal.Decimal
+                            description: Price per unit (e.g., per liter or kWh)
+                            example: 1.50
+                    rating:
+                      type: number
+                      format: float32
+                      description: Average rating of the station (0 to 10)
+                      example: 4.2
+        '404':
+          description: Station not found
+        '500':
+          description: Internal Server Error
+    
+  
+  /stations/{station_id}:
+    get:
+      tags:
+        - Station
+      description: Get info about the station by id
+      parameters:
+        - in: path
+          name: station_id
+          description: ID of the station 
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Stations rate successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  station_id:
+                    type: string
+                    format: uuid
+                    description: Unique identifier of the station
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  latitude: 
+                    type: number
+                    description: Latitude of the station
+                    format: float64
+                    example: 40.7128
+                  longtitude:
+                    type: number
+                    description: Longtitude of the station
+                    format: float64
+                    example: 40.7128
+                  address:
+                    type: string
+                    description: Full address of the station
+                    example: "123 Main St, City, Country"
+                  brand:
+                    type: string
+                    description: Brand of the station
+                    example: "Shell"
+                  fuel_types:
+                    type: array
+                    description: List of available fuel types with their prices
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          description: Type of fuel
+                          example: "Gasoline"
+                        price:
+                          type: number
+                          format: decimal.Decimal
+                          description: Price per unit (e.g., per liter or kWh)
+                          example: 1.50
+                  rating:
+                    type: number
+                    format: float32
+                    description: Average rating of the station (0 to 10)
+                    example: 4.2
+                  operating_hours:
+                    type: string
+                    description: Operating hours of the station
+                    example: "Mon-Sun: 06:00-22:00"
+                  services:
+                    type: array
+                    description: List of additional services available at the station
+                    items:
+                      type: integer
+                      description: Available service
+                      example: 1
+                    example: [1, 2, 3]
+        '404':
+          description: Station not found
+        '500':
+          description: Internal Server Error
+  
+  /route/{station_id}: 
+    get: 
+      tags: 
+        - Map
+      description: Get all available routes to the station by id
+      parameters:
+        - in: path
+          name: station_id
+          description: ID of the station 
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: latitude
+          description: User's current latitude
+          required: true
+          schema:
+            type: number
+            format: float64
+            example: 40.7128
+        - in: query
+          name: longitude
+          description: User's current longitude
+          required: true
+          schema:
+            type: number
+            format: float64
+            example: -74.0060
+      responses:
+        '200':
+          description: Successfully returned list of routes to the station
+          content:
+            application/json:
+              schema:
+                type: array
+                maxItems: 3
+                description: List of up to three routes, each containing a sequence of coordinates
+                items:
+                  type: array
+                  description: A route represented as a list of coordinates
+                  items:
+                    type: object
+                    properties:
+                      latitude:
+                        type: number
+                        format: float64
+                        description: Latitude of the coordinate
+                        example: 40.7128
+                      longitude:
+                        type: number
+                        format: float64
+                        description: Longitude of the coordinate
+                        example: -74.0060
+                  example:
+                    - latitude: 40.7128
+                      longitude: -74.0060
+                    - latitude: 40.7300
+                      longitude: -73.9900
+        '404':
+          description: Station not found
+        '500':
+          description: Internal Server Error
+  
+  /map:
+    get: 
+      tags: 
+        - Map
+      description: Get all available routes to the station by id
+      parameters:
+          - in: query
+            name: latitude
+            description: User's current latitude
+            required: true
+            schema:
+              type: number
+              format: float64
+              example: 40.7128
+          - in: query
+            name: longitude
+            description: User's current longitude
+            required: true
+            schema:
+              type: number
+              format: float64
+              example: -74.0060
+      responses:
+        '200':
+          description: Successfully load map for user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roads:
+                    type: array
+                    description: List of roads, each represented as a sequence of coordinates
+                    items:
+                      type: array
+                      description: A road represented as a list of coordinates
+                      items:
+                        type: object
+                        properties:
+                          latitude:
+                            type: number
+                            format: double
+                            description: Latitude of the coordinate
+                            example: 40.7128
+                          longitude:
+                            type: number
+                            format: double
+                            description: Longitude of the coordinate
+                            example: -74.0060
+                      example:
+                        - latitude: 40.7128
+                          longitude: -74.0060
+                        - latitude: 40.7300
+                          longitude: -73.9900
+                  objects:
+                    type: array
+                    description: List of objects within the specified search radius
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Name of the object (e.g., station, shop)
+                          example: "Shell Station"
+                        object_tag: 
+                          type: integer
+                          description: Tag, that describes object type (1 - forest, 2 - lake and etc)
+                          example: 1
+                        coordinates:
+                          type: object
+                          description: Coordinates of the object
+                          properties:
+                            latitude:
+                              type: number
+                              format: float64
+                              description: Latitude of the object
+                              example: 40.7200
+                            longitude:
+                              type: number
+                              format: float64
+                              description: Longitude of the object
+                              example: -74.0000
+                      example:
+                        name: "Shell Station"
+                        coordinates:
+                          latitude: 40.7200
+                          longitude: -74.0000
+        '400':
+          description: Bad Request (e.g., invalid or missing coordinates)
+        '500':
+          description: Internal Server Error
+    
+  /stations/{station_id}/rate:
+    post:
+      tags:
+        - Station
+      description: Update station rate
+      parameters:
+        - in: path
+          name: station_id
+          description: ID of the station to update the rate for
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: rate
+          description: Rate for the current station
+          schema:
+            type: number
+            format: float32
+      responses:
+        '200':
+          description: Stations rate successfully updated
+        '400':
+          description: Bad Request
+        '404':
+          description: Station not found
+        '500':
+          description: Internal Server Error
+      
+  /monitoring/{user_id}:
+    post: 
+      tags: 
+        - Monitoring
+      description: Turn on the monitoring to search stages
+      parameters: 
+        - in: path
+          name: user_id
+          description: User ID 
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: latitude
+          description: User's current latitude
+          schema:
+            type: number
+            format: float64
+            example: 40.7128
+        - in: query
+          name: longitude
+          description: User's current longitude
+          schema:
+            type: number
+            format: float64
+            example: -74.0060
+      responses:
+        '200':
+          description: Successfully monitoring mode turned on/off for the user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "Мониторинг включен/выключен"
+        '400':
+          description: Incorrect users' request
+        '500':
+          description: Internal Server Error
+  
+
+# Логика по отправке push-уведомлений с сервера на клиент ложится на FCM (в папке system design смотри секцию про FCM)
+/monitoring/{user_id}/update:
+  post:
+    tags:
+      - Monitoring
+    description: Update users' coordinates for sending push-events about stations locations
+    parameters:
+      - in: path
+        name: user_id
+        description: ID пользователя
+        required: true
+        schema:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      - in: query
+        name: latitude
+        description: Current users' latitude
+        required: true
+        schema:
+          type: number
+          format: float64
+          example: 40.7128
+      - in: query
+        name: longitude
+        description: Current users' longitude
+        required: true
+        schema:
+          type: number
+          format: float64
+          example: -74.0060
+    responses:
+      '200':
+        description: Users' coordinates have been successfully updated
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: Users' coordinates have been successfully updated
+      '400':
+        description: Wrong query 
+      '500':
+        description: Internal server error
+
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/google-bac/Auto_Tracker/1.0.0
