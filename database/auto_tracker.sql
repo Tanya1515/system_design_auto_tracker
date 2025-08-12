@@ -59,7 +59,7 @@ CREATE TABLE "Services" (
 );
 
 CREATE TABLE "Objects" (
-    "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),  
     "object_type_id" UUID REFERENCES ObjectTypes(id)
     "name" VARCHAR(50) NOT NULL UNIQUE
     "latitude" DOUBLE PRECISION
